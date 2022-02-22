@@ -1,21 +1,23 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
-import Map, { HeatmapLayer, CircleLayer, Layer, Marker, Source } from 'react-map-gl';
+import Map, { HeatmapLayer, CircleLayer, Layer, Popup, Source, MapLayerMouseEvent } from 'react-map-gl';
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
+import Link from 'next/link';
+
+interface ITweetPoint {
+	longitude: any;
+	latitude: any;
+	score: number;
+	id: string;
+}
 
 const heatmapLayerStyle: HeatmapLayer = {
 	id: 'heatmap-heat',
 	type: 'heatmap',
 	maxzoom: 9,
 	paint: {
-		// Increase the heatmap weight based on frequency and property magnitude
-		'heatmap-weight': ['interpolate', ['linear'], ['get', 'mag'], 0, 0, 6, 1],
-		// Increase the heatmap color weight weight by zoom level
-		// heatmap-intensity is a multiplier on top of heatmap-weight
+		'heatmap-weight': ['interpolate', ['linear'], ['get', 'score'], 0, 0, 6, 1],
 		'heatmap-intensity': ['interpolate', ['linear'], ['zoom'], 0, 1, 10, 3],
-		// Color ramp for heatmap.  Domain is 0 (low) to 1 (high).
-		// Begin color ramp at 0-stop with a 0-transparancy color
-		// to create a blur-like effect.
 		'heatmap-color': [
 			'interpolate',
 			['linear'],
@@ -33,52 +35,50 @@ const heatmapLayerStyle: HeatmapLayer = {
 			0.9,
 			'rgb(255,201,101)'
 		],
-		// Adjust the heatmap radius by zoom level
 		'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 2, 10, 20],
-		// Transition from heatmap to circle layer by zoom level
 		'heatmap-opacity': ['interpolate', ['linear'], ['zoom'], 7, 1, 9, 0]
 	}
 };
 
 const pointLayerStyle: CircleLayer = {
-	id: 'earthquakes-point',
+	id: 'tweet-point',
 	type: 'circle',
-	source: 'earthquakes',
+	source: 'tweets',
 	minzoom: 7,
 	paint: {
-		// Size circle radius by earthquake magnitude and zoom level
 		'circle-radius': [
 			'interpolate',
 			['linear'],
 			['zoom'],
-			7,
-			['interpolate', ['linear'], ['get', 'mag'], 1, 1, 6, 4],
-			16,
-			['interpolate', ['linear'], ['get', 'mag'], 1, 5, 6, 50]
+			7, ['interpolate', 
+				['linear'], 
+				['get', 'score'], 
+				10, 1, 
+				100, 4,
+				1000, 8
+			],
+			16, ['interpolate', 
+				['linear'], 
+				['get', 'score'], 
+				10, 1, 
+				100, 50,
+				4000, 200
+			]
 		],
-		// Color circle by earthquake magnitude
-		'circle-color': [
-			'interpolate',
+		'circle-color': ['interpolate',
 			['linear'],
-			['get', 'mag'],
-			1,
-			'rgba(33,102,172,0)',
-			2,
-			'rgb(103,169,207)',
-			3,
-			'rgb(209,229,240)',
-			4,
-			'rgb(253,219,199)',
-			5,
-			'rgb(239,138,98)',
-			6,
-			'rgb(178,24,43)'
+			['get', 'score'],
+			10, 'rgba(33,102,172,0)',
+			20, 'rgb(103,169,207)',
+			30, 'rgb(209,229,240)',
+			40, 'rgb(253,219,199)',
+			50, 'rgb(239,138,98)',
+			500, 'rgb(178,24,43)',
+			1000, 'rgb(255,201,101)'
 		],
 		'circle-stroke-color': 'white',
 		'circle-stroke-width': 1,
-		// Transition from heatmap to circle layer by zoom level
-		'circle-opacity': [
-			'interpolate',
+		'circle-opacity': ['interpolate',
 			['linear'],
 			['zoom'],
 			7,
@@ -92,11 +92,15 @@ const pointLayerStyle: CircleLayer = {
 
 function DashboardMap() {
 
+	const [popupInfo, setPopupInfo] = useState<ITweetPoint | undefined>(undefined);
 	const [geojson, setGeoJson] = useState(null);
 
 	useEffect(() => {
-		axios('https://docs.mapbox.com/mapbox-gl-js/assets/earthquakes.geojson').then(res => {
-			setGeoJson(res.data);
+		axios('http://127.0.0.1:5000/queries/active/list/geojson').then(res => {
+			if (res.data.status === 200) {
+				setGeoJson(res?.data['geojson']);
+			}
+			else setGeoJson(null);
 		}).catch(err => {
 			console.log(err);
 		});
@@ -109,18 +113,47 @@ function DashboardMap() {
 	return (
 		<Map reuseMaps
 			initialViewState={{
-				longitude: -122.4,
-				latitude: 37.8,
-				zoom: 14
+				longitude: -79.347,
+				latitude: 43.651,
+				zoom: 5
 			}}
+			interactiveLayerIds={['tweet-point']}
 			mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
 			style={{ width: '100%', height: '90vh' }}
-			mapStyle="mapbox://styles/mapbox/dark-v10">
+			mapStyle="mapbox://styles/mapbox/dark-v10"
+			onClick={(event) => {
+				const { features } = event;
+				if (features !== undefined && features.length > 0) {
+					if (features[0].geometry.type === 'Point' && features[0].properties !== null) {
+						const tweet: ITweetPoint = {
+							longitude: features[0].geometry.coordinates[0],
+							latitude: features[0].geometry.coordinates[1],
+							score: features[0].properties.score,
+							id: features[0].properties.id
+						};
+
+						setPopupInfo(tweet);
+					}
+					else setPopupInfo(undefined);
+				}
+				else setPopupInfo(undefined);
+			}}>
 			{data && (
 				<Source id="heatmap" type="geojson" data={data}>
 					<Layer {...heatmapLayerStyle} />
 					<Layer {...pointLayerStyle} />
 				</Source>
+			)}
+			{popupInfo && (
+				<Popup
+					longitude={Number(popupInfo.longitude)} 
+					latitude={Number(popupInfo.latitude)}
+					anchor="bottom"
+					closeOnClick={true}
+					onClose={() => setPopupInfo(undefined)}>
+					The algo score is: {popupInfo.score.toFixed(2)}<br/>
+					<a target='_blank' href={`https://twitter.com/anyuser/status/${popupInfo.id}`} rel='noopener noreferrer' className='text-blue-400 hover:text-blue-300'>Click here</a> to see the tweet.
+				</Popup>
 			)}
 		</Map>
 	);
