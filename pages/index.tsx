@@ -7,6 +7,8 @@ import axios from 'axios';
 import { format, parseISO } from 'date-fns'
 import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationIcon } from '@heroicons/react/outline'
+import { ITweet } from '../types/tweet';
+import { IQuery } from '../types/query';
 
 // Disable server side rendering
 const Map = dynamic(
@@ -14,41 +16,11 @@ const Map = dynamic(
     return import('../components/map')
   }, {ssr: false});
 
-interface IQuery {
-  id?: string;
-	name: string;
-  location: any;
-  startDate: Date;
-  endDate: Date;
-  keywords: string[];
-  frequency: number;
-	maxTweets: number;
-}
-
-interface ITweet {
-  id: string;
-  queryID: string;
-  likes: number;
-  retweets: number;
-  replies: number;
-  content: string;
-  media: any[];
-  location: any;
-  createdAt: Date;
-  keywordCount: number;
-  interactionScore: number;
-  relatabilityScore: number;
-}
-
 // Image recognition
 // Use Google Image Recognition API
 // Assign data points from events to members
 // One account
 // Microsoft image recognition API
-
-function deleteQuery(id: string) {
-  
-}
 
 const Dashboard: NextPage = () => {
 
@@ -56,8 +28,8 @@ const Dashboard: NextPage = () => {
   let [tweets, setTweets] = useState<ITweet[] | undefined>(undefined);
   let [modalQuery, setModalQuery] = useState<IQuery | undefined>(undefined);
   let [open, setOpen] = useState(false);
+  
   const [refreshKey, setRefreshKey] = useState(0);
-
   const cancelButtonRef = useRef(null);
 
   useEffect(() => {
@@ -162,6 +134,27 @@ const Dashboard: NextPage = () => {
                 <div className="bg-stone-100 dark:bg-stone-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="button"
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    onClick={() => {
+                      setOpen(false);
+                    }}
+                    ref={cancelButtonRef}
+                  >
+                    Cancel
+                  </button>
+                  <Link href={`/query/${modalQuery?.id}`} passHref>
+                    <button
+                      type="button"
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                      onClick={() => {
+                        setOpen(false);
+                      }}
+                    >
+                      Edit
+                    </button>
+                  </Link>
+                  <button
+                    type="button"
                     className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
                     onClick={() => {
                       setOpen(false);
@@ -182,16 +175,6 @@ const Dashboard: NextPage = () => {
                     }}
                   >
                     Delete
-                  </button>
-                  <button
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                    onClick={() => {
-                      setOpen(false);
-                    }}
-                    ref={cancelButtonRef}
-                  >
-                    Cancel
                   </button>
                 </div>
               </div>
