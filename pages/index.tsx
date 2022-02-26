@@ -9,6 +9,7 @@ import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationIcon } from '@heroicons/react/outline'
 import { ITweet } from '../types/tweet';
 import { IQuery } from '../types/query';
+import { useUser } from '@auth0/nextjs-auth0';
 
 // Disable server side rendering
 const Map = dynamic(
@@ -21,6 +22,24 @@ const Map = dynamic(
 // Assign data points from events to members
 // One account
 // Microsoft image recognition API
+
+function LoginButtons() {
+  const { user, error, isLoading } = useUser();
+
+  if (isLoading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
+
+  if (user) {
+    return <a href="/api/auth/logout" className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">Logout</a>
+  }
+
+  return (
+    <>
+      <a href="/api/auth/login" className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">Login</a>
+      <a href="/api/auth/login" className="w-full px-3 py-2 my-2 text-center rounded-md border hover:bg-slate-100 dark:hover:bg-stone-600 shadow-sm text-sm leading-5 font-semibold dark:text-stone-100">Register</a>
+    </>
+  );
+}
 
 const Dashboard: NextPage = () => {
 
@@ -81,6 +100,8 @@ const Dashboard: NextPage = () => {
 			console.log(err);
 		});
   }, [refreshKey]);
+
+  
 
   return (
     <>
@@ -233,10 +254,7 @@ const Dashboard: NextPage = () => {
             </div>
           </div>
           <div className="min-w-full min-h-full p-2 flex flex-col justify-center items-center">
-            <Link href="/login" passHref>
-              <button className="w-full px-3 py-2 my-2 rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">Login</button>
-            </Link>
-            <button onClick={() => setOpen(true)} className="w-full px-3 py-2 my-2 border rounded-md hover:bg-slate-100 dark:hover:bg-stone-600 shadow-sm text-sm leading-5 font-semibold dark:text-stone-100">Register</button>
+            <LoginButtons></LoginButtons>
           </div>
         </main>
       </div>
