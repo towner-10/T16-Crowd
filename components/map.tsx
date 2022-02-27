@@ -95,7 +95,7 @@ function DashboardMap() {
 	const [geojson, setGeoJson] = useState(null);
 
 	useEffect(() => {
-		axios(`${process.env.NEXT_PUBLIC_API_BACKEND_URL}/queries/active/list/geojson`).then(res => {
+		axios(`${process.env.NEXT_PUBLIC_HOST_URL}/queries/active/list/geojson`).then(res => {
 			if (res.data.status === 200) {
 				setGeoJson(res?.data['geojson']);
 			}

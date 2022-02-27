@@ -53,7 +53,7 @@ const Dashboard: NextPage = () => {
   const cancelButtonRef = useRef(null);
 
   useEffect(() => {
-    axios(`${process.env.NEXT_PUBLIC_API_BACKEND_URL}/queries/active/list`).then(res => {
+    axios(`${process.env.NEXT_PUBLIC_HOST_URL}/queries/active/list`).then(res => {
 			if (res.data.status === 200) {
         let queriesList: IQuery[] = [];
         for (let query of res.data['queries']) {
@@ -75,7 +75,7 @@ const Dashboard: NextPage = () => {
 			console.log(err);
 		});
 
-    axios(`${process.env.NEXT_PUBLIC_API_BACKEND_URL}/queries/active/list/tweets?limit=5`).then(res => {
+    axios(`${process.env.NEXT_PUBLIC_HOST_URL}/queries/active/list/tweets?limit=5`).then(res => {
 			if (res.data.status === 200) {
         let tweetsList: ITweet[] = [];
         for (let query of res.data['tweets']) {
@@ -182,7 +182,7 @@ const Dashboard: NextPage = () => {
                       setOpen(false);
 
                       if (modalQuery?.id !== undefined) {
-                        axios.post(`${process.env.NEXT_PUBLIC_API_BACKEND_URL}/query/${modalQuery?.id}/remove`).then(res => {
+                        axios.post(`${process.env.NEXT_PUBLIC_HOST}/query/${modalQuery?.id}/remove`).then(res => {
                           if (res.data['status'] === 200) {
                             console.log('Query removed');
                             setRefreshKey((prev) => prev + 1);
