@@ -10,7 +10,8 @@ import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationIcon } from '@heroicons/react/outline'
 import { ITweet } from '../types/tweet';
 import { IQuery } from '../types/query';
-import { useUser } from '@auth0/nextjs-auth0';
+import { useUser, getAccessToken, withApiAuthRequired } from '@auth0/nextjs-auth0';
+import es from 'date-fns/esm/locale/es/index.js';
 
 // Disable server side rendering
 const Map = dynamic(
@@ -31,7 +32,12 @@ function LoginButtons() {
   if (error) return <p>Error: {error.message}</p>;
 
   if (user) {
-    return <a href="/api/auth/logout" className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">Logout</a>
+    return <>
+      <Link href='/query/new' passHref>
+        <a className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">New Query</a>
+      </Link>
+      <a href="/api/auth/logout" className="w-full px-3 py-2 my-2 text-center rounded-md border hover:bg-slate-100 dark:hover:bg-stone-600 shadow-sm text-sm leading-5 font-semibold dark:text-stone-100">Logout</a>
+    </>
   }
 
   return (
@@ -101,8 +107,6 @@ const Dashboard: NextPage = () => {
 			console.log(err);
 		});
   }, [refreshKey]);
-
-  
 
   return (
     <>
@@ -182,16 +186,20 @@ const Dashboard: NextPage = () => {
                       setOpen(false);
 
                       if (modalQuery?.id !== undefined) {
-                        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/${modalQuery?.id}/remove`).then(res => {
-                          if (res.data['status'] === 200) {
+                        withApiAuthRequired(async (req, res) => {
+                          const {accessToken} = await getAccessToken(req, res);
+                          const {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/${modalQuery?.id}/remove`, {}, {
+                            headers: {
+                              Authorization: 'Bearer ' + accessToken
+                            }
+                          });
+                          if (data['status'] === 200) {
                             console.log('Query removed');
                             setRefreshKey((prev) => prev + 1);
                           }
-                          console.log('Query remove failed');
-                          setOpen(false);
-                        }).catch((err) => {
-                          console.log(err);
-                          setOpen(false);
+                          else {
+                            console.log('Query remove failed');
+                          }
                         });
                       }
                     }}
