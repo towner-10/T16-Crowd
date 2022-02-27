@@ -13,7 +13,7 @@ const Query: NextPage = () => {
     let [query, setQuery] = useState<IQuery | undefined>(undefined);
 
     useEffect(() => {
-        axios(`http://127.0.0.1:5000/query/${id}`).then(res => {
+        axios(`http://${process.env.NEXT_PUBLIC_API_BACKEND_URL}/query/${id}`).then(res => {
 			if (res.data.status === 200) {
                 setQuery({
                     id: res.data.query['_id'],

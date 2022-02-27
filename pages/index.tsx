@@ -53,7 +53,7 @@ const Dashboard: NextPage = () => {
   const cancelButtonRef = useRef(null);
 
   useEffect(() => {
-    axios('http://127.0.0.1:5000/queries/active/list').then(res => {
+    axios(`http://${process.env.NEXT_PUBLIC_API_BACKEND_URL}/queries/active/list`).then(res => {
 			if (res.data.status === 200) {
         let queriesList: IQuery[] = [];
         for (let query of res.data['queries']) {
@@ -75,7 +75,7 @@ const Dashboard: NextPage = () => {
 			console.log(err);
 		});
 
-    axios('http://127.0.0.1:5000/queries/active/list/tweets?limit=5').then(res => {
+    axios(`http://${process.env.NEXT_PUBLIC_API_BACKEND_URL}/queries/active/list/tweets?limit=5`).then(res => {
 			if (res.data.status === 200) {
         let tweetsList: ITweet[] = [];
         for (let query of res.data['tweets']) {
