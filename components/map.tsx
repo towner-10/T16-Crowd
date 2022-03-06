@@ -1,5 +1,5 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
-import Map, { HeatmapLayer, CircleLayer, Layer, Popup, Source, MapLayerMouseEvent } from 'react-map-gl';
+import Map, { HeatmapLayer, CircleLayer, Layer, Popup, Source } from 'react-map-gl';
 import axios from 'axios';
 import { useEffect, useMemo, useState } from 'react';
 
