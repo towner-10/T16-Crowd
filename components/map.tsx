@@ -1,7 +1,8 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
-import Map, { HeatmapLayer, CircleLayer, Layer, Popup, Source } from 'react-map-gl';
+import Map, { HeatmapLayer, CircleLayer, Layer, Popup, Source, MarkerDragEvent, Marker } from 'react-map-gl';
 import axios from 'axios';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import Pin from '../components/pin';
 
 interface ITweetPoint {
 	longitude: any;
@@ -49,17 +50,17 @@ const pointLayerStyle: CircleLayer = {
 			'interpolate',
 			['linear'],
 			['zoom'],
-			7, ['interpolate', 
-				['linear'], 
-				['get', 'score'], 
-				10, 1, 
+			7, ['interpolate',
+				['linear'],
+				['get', 'score'],
+				10, 1,
 				100, 4,
 				1000, 8
 			],
-			16, ['interpolate', 
-				['linear'], 
-				['get', 'score'], 
-				10, 1, 
+			16, ['interpolate',
+				['linear'],
+				['get', 'score'],
+				10, 1,
 				100, 50,
 				4000, 200
 			]
@@ -88,6 +89,47 @@ const pointLayerStyle: CircleLayer = {
 	}
 };
 
+export function NewQueryMap({onMove}: {onMove: (e: any) => void}) {
+
+	const [marker, setMarker] = useState({
+		longitude: -79.347,
+		latitude: 43.651,
+	});
+
+	const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
+        onMove({
+			longitude: event.lngLat.lng,
+			latitude: event.lngLat.lat
+		});
+
+		setMarker({
+			longitude: event.lngLat.lng,
+			latitude: event.lngLat.lat
+		});
+	}, []);
+
+	return (
+		<Map reuseMaps
+			initialViewState={{
+				longitude: -79.347,
+				latitude: 43.651,
+				zoom: 5
+			}}
+			mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+			style={{ width: '90%', height: '70vh' }}
+			mapStyle="mapbox://styles/mapbox/dark-v10">
+			<Marker
+				longitude={marker.longitude}
+				latitude={marker.latitude}
+				anchor="bottom"
+				draggable
+				onDrag={onMarkerDrag}
+			>
+				<Pin size={20} />
+			</Marker>
+		</Map>
+	);
+}
 
 function DashboardMap() {
 
@@ -145,12 +187,12 @@ function DashboardMap() {
 			)}
 			{popupInfo && (
 				<Popup
-					longitude={Number(popupInfo.longitude)} 
+					longitude={Number(popupInfo.longitude)}
 					latitude={Number(popupInfo.latitude)}
 					anchor="bottom"
 					closeOnClick={true}
 					onClose={() => setPopupInfo(undefined)}>
-					The algo score is: {popupInfo.score.toFixed(2)}<br/>
+					The algo score is: {popupInfo.score.toFixed(2)}<br />
 					<a target='_blank' href={`https://twitter.com/anyuser/status/${popupInfo.id}`} rel='noopener noreferrer' className='text-blue-400 hover:text-blue-300'>Click here</a> to see the tweet.
 				</Popup>
 			)}
