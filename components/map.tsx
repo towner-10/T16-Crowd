@@ -89,12 +89,9 @@ const pointLayerStyle: CircleLayer = {
 	}
 };
 
-export function NewQueryMap({onMove}: {onMove: (e: any) => void}) {
+export function NewQueryMap({onMove, style, startingPos}: {onMove: (e: any) => void, style: any, startingPos: any}) {
 
-	const [marker, setMarker] = useState({
-		longitude: -79.347,
-		latitude: 43.651,
-	});
+	const [marker, setMarker] = useState(startingPos);
 
 	const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
         onMove({
@@ -116,7 +113,7 @@ export function NewQueryMap({onMove}: {onMove: (e: any) => void}) {
 				zoom: 5
 			}}
 			mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-			style={{ width: '90%', height: '70vh' }}
+			style={style}
 			mapStyle="mapbox://styles/mapbox/dark-v10">
 			<Marker
 				longitude={marker.longitude}

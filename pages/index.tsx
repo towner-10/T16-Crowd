@@ -10,19 +10,13 @@ import { Dialog, Transition } from '@headlessui/react'
 import { ExclamationIcon } from '@heroicons/react/outline'
 import { ITweet } from '../types/tweet';
 import { IQuery } from '../types/query';
-import { useUser, getAccessToken, withApiAuthRequired } from '@auth0/nextjs-auth0';
+import { useUser } from '@auth0/nextjs-auth0';
 
 // Disable server side rendering
 const Map = dynamic(
   () => {
     return import('../components/map')
-  }, {ssr: false});
-
-// Image recognition
-// Use Google Image Recognition API
-// Assign data points from events to members
-// One account
-// Microsoft image recognition API
+  }, { ssr: false });
 
 function LoginButtons() {
   const { user, error, isLoading } = useUser();
@@ -47,19 +41,38 @@ function LoginButtons() {
   );
 }
 
+function DeleteQueryButton({callback}: {callback: () => void}) {
+  const { user, error, isLoading } = useUser();
+
+  if (isLoading) return <></>;
+  if (error) return <></>;
+
+  if (user) {
+    return <button
+      type="button"
+      className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+      onClick={callback}
+    >
+      Delete
+    </button>
+  }
+
+  return <></>;
+}
+
 const Dashboard: NextPage = () => {
 
   let [queries, setQueries] = useState<IQuery[] | undefined>(undefined);
   let [tweets, setTweets] = useState<ITweet[] | undefined>(undefined);
   let [modalQuery, setModalQuery] = useState<IQuery | undefined>(undefined);
   let [open, setOpen] = useState(false);
-  
+
   const [refreshKey, setRefreshKey] = useState(0);
   const cancelButtonRef = useRef(null);
 
   useEffect(() => {
     axios(`${process.env.NEXT_PUBLIC_API_URL}/queries/active/list`).then(res => {
-			if (res.data.status === 200) {
+      if (res.data.status === 200) {
         let queriesList: IQuery[] = [];
         for (let query of res.data['queries']) {
           queriesList.push({
@@ -73,15 +86,15 @@ const Dashboard: NextPage = () => {
             maxTweets: query['maxTweets']
           });
         }
-				setQueries(queriesList);
-			}
-			else setQueries(undefined);
-		}).catch(err => {
-			console.log(err);
-		});
+        setQueries(queriesList);
+      }
+      else setQueries(undefined);
+    }).catch(err => {
+      console.log(err);
+    });
 
     axios(`${process.env.NEXT_PUBLIC_API_URL}/queries/active/list/tweets?limit=5`).then(res => {
-			if (res.data.status === 200) {
+      if (res.data.status === 200) {
         let tweetsList: ITweet[] = [];
         for (let query of res.data['tweets']) {
           tweetsList.push({
@@ -99,12 +112,12 @@ const Dashboard: NextPage = () => {
             relatabilityScore: query['rs']
           });
         }
-				setTweets(tweetsList);
-			}
-			else setQueries(undefined);
-		}).catch(err => {
-			console.log(err);
-		});
+        setTweets(tweetsList);
+      }
+      else setQueries(undefined);
+    }).catch(err => {
+      console.log(err);
+    });
   }, [refreshKey]);
 
   return (
@@ -159,7 +172,7 @@ const Dashboard: NextPage = () => {
                 <div className="bg-stone-100 dark:bg-stone-800 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
                     onClick={() => {
                       setOpen(false);
                     }}
@@ -170,7 +183,7 @@ const Dashboard: NextPage = () => {
                   <Link href={`/query/${modalQuery?.id}`} passHref>
                     <button
                       type="button"
-                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                      className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
                       onClick={() => {
                         setOpen(false);
                       }}
@@ -178,33 +191,19 @@ const Dashboard: NextPage = () => {
                       Edit
                     </button>
                   </Link>
-                  <button
-                    type="button"
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
-                    onClick={() => {
+                  <DeleteQueryButton callback={
+                    () => {
                       setOpen(false);
-
-                      if (modalQuery?.id !== undefined) {
-                        withApiAuthRequired(async (req, res) => {
-                          const {accessToken} = await getAccessToken(req, res);
-                          const {data} = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/${modalQuery?.id}/remove`, {}, {
-                            headers: {
-                              Authorization: 'Bearer ' + accessToken
-                            }
-                          });
-                          if (data['status'] === 200) {
-                            console.log('Query removed');
-                            setRefreshKey((prev) => prev + 1);
-                          }
-                          else {
-                            console.log('Query remove failed');
-                          }
-                        });
-                      }
-                    }}
-                  >
-                    Delete
-                  </button>
+                      axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/${modalQuery?.id}/remove`, {}).then(res => {
+                        if (res.data['status'] === 200) {
+                          console.log('Query removed');
+                          setRefreshKey((prev) => prev + 1);
+                        }
+                      }).catch(err => {
+                        console.log('Query remove failed');
+                      });
+                    }
+                  }></DeleteQueryButton>
                 </div>
               </div>
             </Transition.Child>
@@ -227,9 +226,9 @@ const Dashboard: NextPage = () => {
           </div>
           <div className="row-span-2 min-w-full min-h-full overflow-hidden">
             <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Active Queries</h1>
-            <div className='overflow-y-auto' style={{height: '30vh'}}>
+            <div className='overflow-y-auto' style={{ height: '30vh' }}>
               {queries && queries.map((query, index) => {
-                return(
+                return (
                   <button key={index} onClick={() => {
                     setModalQuery(query);
                     setOpen(true);
@@ -246,9 +245,9 @@ const Dashboard: NextPage = () => {
           </div>
           <div className="row-span-2 min-w-full min-h-full">
             <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Top 5 Tweets</h1>
-            <div className='overflow-y-auto' style={{height: '30vh'}}>
+            <div className='overflow-y-auto' style={{ height: '30vh' }}>
               {tweets && tweets.map((tweet, index) => {
-                return(
+                return (
                   <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
                     <h5 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white break-words">Tweet: {tweet.id}</h5>
                     <h5 className="mb-2 text-l tracking-tight text-stone-900 dark:text-stone-200">{format(tweet.createdAt, 'yyyy/MM/dd')} - {tweet.relatabilityScore.toFixed(2)} score</h5>
