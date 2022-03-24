@@ -89,7 +89,7 @@ const pointLayerStyle: CircleLayer = {
 	}
 };
 
-export class NewQueryMap extends Component<{ location: any, style: any, onMove: (loc: any) => void }> {
+export class QueryMap extends Component<{ location: any, style: any, onMove: (loc: any) => void }> {
 	
 	constructor(props: any) {
 		super(props);

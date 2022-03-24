@@ -1,7 +1,7 @@
 import type { NextPage } from 'next';
 import Head from 'next/head';
 import React, { useState } from 'react';
-import { NewQueryMap } from '../../components/map';
+import { QueryMap } from '../../components/map';
 import TagInput from '../../components/tagInput';
 import { format } from 'date-fns';
 import axios from 'axios';
@@ -21,7 +21,7 @@ const NewQuery: NextPage = () => {
 		latitude: 43.651,
 	});
 
-    const map = <NewQueryMap 
+    const map = <QueryMap 
         location={location}
         onMove={(loc) => {
             setLocation(loc);

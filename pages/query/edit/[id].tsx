@@ -6,7 +6,7 @@ import React, { useEffect, useState } from 'react'
 import { format, parseISO } from 'date-fns'
 import { IQuery } from '../../../types/query';
 import TagInput from '../../../components/tagInput'
-import { NewQueryMap } from '../../../components/map'
+import { QueryMap } from '../../../components/map'
 
 const EditQuery: NextPage = () => {
     const router = useRouter();
@@ -25,7 +25,7 @@ const EditQuery: NextPage = () => {
 		latitude: 43.651,
 	});
 
-    const map = <NewQueryMap 
+    const map = <QueryMap 
         location={location}
         onMove={(loc) => {
             setLocation(loc);
@@ -81,9 +81,15 @@ const EditQuery: NextPage = () => {
 
         console.log(keywordsString);
 
-        // ---------------------------
-        // Update query endpoint here
-        // ---------------------------
+        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/${id}/update?name=${encodeURIComponent(name)}&loc=${location.latitude},${location.longitude},${radius}km&start=${startDate}&end=${endDate}&freq=${frequency}&max=${maxTweets}&keywords=${keywordsString}`).then(res => {
+            if (res.data.status === 200) {
+                router.push('/query/[id]', `/query/${id}`);
+            } else {
+                console.log(res.data);
+            }
+        }).catch(err => {
+            console.log(err);
+        });
     }
 
     return (
