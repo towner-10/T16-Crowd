@@ -25,6 +25,8 @@ const Query: NextPage = () => {
                     frequency: res.data.query['frequency'],
                     maxTweets: res.data.query['maxTweets']
                 });
+                if (query !== undefined) console.log(query);
+                else console.log('query is undefined');
             }
             else setQuery(undefined);
         }).catch(err => {

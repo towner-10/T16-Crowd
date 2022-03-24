@@ -1,14 +1,18 @@
-import type { NextPage } from 'next';
-import Head from 'next/head';
-import React, { useState } from 'react';
-import { NewQueryMap } from '../../components/map';
-import TagInput from '../../components/tagInput';
-import { format } from 'date-fns';
-import axios from 'axios';
-import { useRouter } from 'next/router';
+import axios from 'axios'
+import type { NextPage } from 'next'
+import Head from 'next/head'
+import { useRouter } from 'next/router'
+import React, { useEffect, useState } from 'react'
+import { format, parseISO } from 'date-fns'
+import { IQuery } from '../../../types/query';
+import TagInput from '../../../components/tagInput'
+import { NewQueryMap } from '../../../components/map'
 
-const NewQuery: NextPage = () => {
+const EditQuery: NextPage = () => {
+    const router = useRouter();
+    const { id } = router.query;
 
+    let [query, setQuery] = useState<IQuery | undefined>(undefined);
     let [name, setName] = useState('');
     let [radius, setRadius] = useState(50);
     let [startDate, setStartDate] = useState(format(Date.now(), 'yyyy-MM-dd'));
@@ -25,38 +29,62 @@ const NewQuery: NextPage = () => {
         location={location}
         onMove={(loc) => {
             setLocation(loc);
+            console.log(loc);
         }} style={{ width: '100%', height: '90vh' }}
     />;
 
-    const router = useRouter();
-
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-
-        const keywordsString = keywords.map((keyword, index) => {
-            return encodeURIComponent(keyword);
-        }).toString();
-
-        console.log(keywordsString);
-
-        axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/new?name=${encodeURIComponent(name)}&loc=${location.latitude},${location.longitude},${radius}km&start=${startDate}&end=${endDate}&freq=${frequency}&max=${maxTweets}&keywords=${keywordsString}`).then(
-            res => {
-                if (res.data['status'] === 200) {
-                    console.log('success');
-                    router.push('/');
-                }
-            }
-        ).catch(err => {
-            console.log(err);
-        });
-    }
-    
     const keywordInput = <TagInput 
         tags={keywords}
         setTags={(tags) => {
             setKeywords(tags);
         }}
     />
+
+    useEffect(() => {
+        axios(`${process.env.NEXT_PUBLIC_API_URL}/query/${id}`).then(res => {
+			if (res.data.status === 200) {
+                setQuery({
+                    id: res.data.query['_id'],
+                    name: res.data.query['name'],
+                    location: res.data.query['location'],
+                    startDate: parseISO(res.data.query['startDate']),
+                    endDate: parseISO(res.data.query['endDate']),
+                    keywords: res.data.query['keywords'],
+                    frequency: res.data.query['frequency'],
+                    maxTweets: res.data.query['maxTweets']
+                });
+                setName(res.data.query['name']);
+                setRadius(parseInt(res.data.query['location'].split(',')[2].split('km')[0]));
+                setStartDate(format(parseISO(res.data.query['startDate']), 'yyyy-MM-dd'));
+                setEndDate(format(parseISO(res.data.query['endDate']), 'yyyy-MM-dd'));
+                setFrequency(res.data.query['frequency']);
+                setMaxTweets(res.data.query['maxTweets']);
+                setKeywords(res.data.query['keywords'] as string[]);
+                setLocation({
+                    longitude: parseFloat(res.data.query['location'].split(',')[1]),
+                    latitude: parseFloat(res.data.query['location'].split(',')[0]),
+                });
+            }
+            else setQuery(undefined);
+        }).catch(err => {
+            console.log(err);
+            setQuery(undefined);
+        });
+    }, [id]);
+
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const keywordsString = keywords.map((keyword, index) => {
+            return encodeURIComponent(keyword.replace(/[\(\)']+/g,''));
+        }).toString();
+
+        console.log(keywordsString);
+
+        // ---------------------------
+        // Update query endpoint here
+        // ---------------------------
+    }
 
     return (
         <div className='bg-white dark:bg-stone-900'>
@@ -126,12 +154,12 @@ const NewQuery: NextPage = () => {
                         </form>
                     </div>
                     <div className="min-w-full col-span-2 min-h-full p-2 flex flex-col justify-end items-center">
-                        <button form="newQueryForm" value="Submit" className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">Submit</button>
+                        <button form="newQueryForm" value="Submit" className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">Update</button>
                     </div>
                 </main>
             </div>
         </div>
-    )
+    );
 }
 
-export default NewQuery
+export default EditQuery;

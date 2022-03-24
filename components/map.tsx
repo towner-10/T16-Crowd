@@ -1,7 +1,7 @@
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Map, { HeatmapLayer, CircleLayer, Layer, Popup, Source, MarkerDragEvent, Marker } from 'react-map-gl';
 import axios from 'axios';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Component, useEffect, useMemo, useState } from 'react';
 import Pin from '../components/pin';
 
 interface ITweetPoint {
@@ -32,7 +32,7 @@ const heatmapLayerStyle: HeatmapLayer = {
 			'rgb(253,219,199)',
 			0.8,
 			'rgb(239,138,98)',
-			0.9,
+			1,
 			'rgb(255,201,101)'
 		],
 		'heatmap-radius': ['interpolate', ['linear'], ['zoom'], 0, 2, 10, 20],
@@ -89,43 +89,40 @@ const pointLayerStyle: CircleLayer = {
 	}
 };
 
-export function NewQueryMap({onMove, style, startingPos}: {onMove: (e: any) => void, style: any, startingPos: any}) {
+export class NewQueryMap extends Component<{ location: any, style: any, onMove: (loc: any) => void }> {
+	
+	constructor(props: any) {
+		super(props);
+	}
 
-	const [marker, setMarker] = useState(startingPos);
-
-	const onMarkerDrag = useCallback((event: MarkerDragEvent) => {
-        onMove({
-			longitude: event.lngLat.lng,
-			latitude: event.lngLat.lat
-		});
-
-		setMarker({
-			longitude: event.lngLat.lng,
-			latitude: event.lngLat.lat
-		});
-	}, []);
-
-	return (
-		<Map reuseMaps
-			initialViewState={{
-				longitude: -79.347,
-				latitude: 43.651,
-				zoom: 5
-			}}
-			mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
-			style={style}
-			mapStyle="mapbox://styles/mapbox/dark-v10">
-			<Marker
-				longitude={marker.longitude}
-				latitude={marker.latitude}
-				anchor="bottom"
-				draggable
-				onDrag={onMarkerDrag}
-			>
-				<Pin size={20} />
-			</Marker>
-		</Map>
-	);
+	render() {
+		return (
+			<Map reuseMaps
+				initialViewState={{
+					longitude: -79.347,
+					latitude: 43.651,
+					zoom: 5
+				}}
+				mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+				style={this.props.style}
+				mapStyle="mapbox://styles/mapbox/dark-v10">
+				<Marker
+					longitude={this.props.location.longitude}
+					latitude={this.props.location.latitude}
+					anchor="bottom"
+					draggable
+					onDrag={(event: MarkerDragEvent) => {
+						this.props.onMove({
+							longitude: event.lngLat.lng,
+							latitude: event.lngLat.lat
+						});
+					}}
+				>
+					<Pin size={20} />
+				</Marker>
+			</Map>
+		);
+	}
 }
 
 function DashboardMap() {
