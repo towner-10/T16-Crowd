@@ -7,7 +7,7 @@ import { Fragment, useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import { format, parseISO } from 'date-fns'
 import { Dialog, Transition } from '@headlessui/react'
-import { ExclamationIcon } from '@heroicons/react/outline'
+import { ExclamationIcon, QuestionMarkCircleIcon } from '@heroicons/react/outline'
 import { ITweet } from '../types/tweet';
 import { IQuery } from '../types/query';
 import { useUser } from '@auth0/nextjs-auth0';
@@ -41,7 +41,7 @@ function LoginButtons() {
   );
 }
 
-function DeleteQueryButton({callback}: {callback: () => void}) {
+function DeleteQueryButton({ callback }: { callback: () => void }) {
   const { user, error, isLoading } = useUser();
 
   if (isLoading) return <></>;
@@ -55,6 +55,27 @@ function DeleteQueryButton({callback}: {callback: () => void}) {
     >
       Delete
     </button>
+  }
+
+  return <></>;
+}
+
+function EditQueryButton({ callback, link }: { callback: () => void, link: string }) {
+  const { user, error, isLoading } = useUser();
+
+  if (isLoading) return <></>;
+  if (error) return <></>;
+
+  if (user) {
+    return <Link href={link} passHref>
+      <button
+        type="button"
+        className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
+        onClick={callback}
+      >
+        Edit
+      </button>
+    </Link>
   }
 
   return <></>;
@@ -114,7 +135,7 @@ const Dashboard: NextPage = () => {
         }
         setTweets(tweetsList);
       }
-      else setQueries(undefined);
+      else setTweets(undefined);
     }).catch(err => {
       console.log(err);
     });
@@ -153,12 +174,12 @@ const Dashboard: NextPage = () => {
               <div className="inline-block align-bottom bg-stone-50 dark:bg-stone-700 rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
                 <div className="bg-stone-50 dark:bg-stone-700 px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
                   <div className="sm:flex sm:items-start">
-                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-700 sm:mx-0 sm:h-10 sm:w-10">
-                      <ExclamationIcon className="h-6 w-6 text-red-600 dark:text-red-200" aria-hidden="true" />
+                    <div className="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-purple-100 dark:bg-purple-700 sm:mx-0 sm:h-10 sm:w-10">
+                      <QuestionMarkCircleIcon className="h-6 w-6 text-purple-600 dark:text-purple-200" aria-hidden="true" />
                     </div>
                     <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
                       <Dialog.Title as="h3" className="text-lg leading-6 font-medium text-gray-900 dark:text-stone-100">
-                        <span className='font-bold'>Delete</span> <span className='italic break-normal'>{modalQuery?.name}</span>
+                        <span className='font-bold'>Query</span> <span className='italic break-normal'>{modalQuery?.name}</span>
                       </Dialog.Title>
                       <div className="mt-2">
                         <p className="text-sm text-gray-500 dark:text-stone-300">
@@ -180,7 +201,10 @@ const Dashboard: NextPage = () => {
                   >
                     Cancel
                   </button>
-                  <Link href={`/query/edit/${modalQuery?.id}`} passHref>
+                  <EditQueryButton link={`/query/edit/${modalQuery?.id}`} callback={() => {
+                    setOpen(false);
+                  }} />
+                  <Link href={`/query/${modalQuery?.id}`} passHref>
                     <button
                       type="button"
                       className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-stone-400 shadow-sm px-4 py-2 bg-white dark:bg-stone-200 text-base font-medium text-gray-700 hover:bg-gray-50 dark:hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:ml-3 sm:w-auto sm:text-sm"
@@ -188,7 +212,7 @@ const Dashboard: NextPage = () => {
                         setOpen(false);
                       }}
                     >
-                      Edit
+                      View
                     </button>
                   </Link>
                   <DeleteQueryButton callback={

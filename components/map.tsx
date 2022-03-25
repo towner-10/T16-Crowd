@@ -125,6 +125,75 @@ export class QueryMap extends Component<{ location: any, style: any, onMove: (lo
 	}
 }
 
+export function QueryHeatmap(props: { id: string}) {
+
+	const [popupInfo, setPopupInfo] = useState<ITweetPoint | undefined>(undefined);
+	const [geojson, setGeoJson] = useState(null);
+
+	useEffect(() => {
+		axios(`${process.env.NEXT_PUBLIC_API_URL}/query/${props.id}/geojson`).then(res => {
+			if (res.data.status === 200) {
+				setGeoJson(res?.data['geojson']);
+			}
+			else setGeoJson(null);
+		}).catch(err => {
+			console.log(err);
+		});
+	}, [props.id]);
+
+	const data = useMemo(() => {
+		return geojson;
+	}, [geojson]);
+
+	return (
+		<Map reuseMaps
+			initialViewState={{
+				longitude: -79.347,
+				latitude: 43.651,
+				zoom: 5
+			}}
+			interactiveLayerIds={['tweet-point']}
+			mapboxAccessToken={process.env.NEXT_PUBLIC_MAPBOX_TOKEN}
+			style={{ width: '100%', height: '90vh' }}
+			mapStyle="mapbox://styles/mapbox/dark-v10"
+			onClick={(event) => {
+				const { features } = event;
+				if (features !== undefined && features.length > 0) {
+					if (features[0].geometry.type === 'Point' && features[0].properties !== null) {
+						const tweet: ITweetPoint = {
+							longitude: features[0].geometry.coordinates[0],
+							latitude: features[0].geometry.coordinates[1],
+							score: features[0].properties.score,
+							id: features[0].properties.id
+						};
+
+						setPopupInfo(tweet);
+					}
+					else setPopupInfo(undefined);
+				}
+				else setPopupInfo(undefined);
+			}}>
+			{data && (
+				<Source id="heatmap" type="geojson" data={data}>
+					<Layer {...heatmapLayerStyle} />
+					<Layer {...pointLayerStyle} />
+				</Source>
+			)}
+			{popupInfo && (
+				<Popup
+					longitude={Number(popupInfo.longitude)}
+					latitude={Number(popupInfo.latitude)}
+					anchor="bottom"
+					closeOnClick={true}
+					onClose={() => setPopupInfo(undefined)}>
+					The algo score is: {popupInfo.score.toFixed(2)}<br />
+					<a target='_blank' href={`https://twitter.com/anyuser/status/${popupInfo.id}`} rel='noopener noreferrer' className='text-blue-400 hover:text-blue-300'>Click here</a> to see the tweet.
+				</Popup>
+			)}
+		</Map>
+	);
+}
+
 function DashboardMap() {
 
 	const [popupInfo, setPopupInfo] = useState<ITweetPoint | undefined>(undefined);
