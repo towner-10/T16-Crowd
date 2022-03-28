@@ -62,66 +62,67 @@ const Query: NextPage = () => {
     }, [id]);
 
     return (
-        <div className="h-screen bg-white dark:bg-stone-900">
+        <>
             <Head>
                 <title>T16 - Dashboard</title>
                 <meta name="description" content="Dashboard for NTP use" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-
-            <main className="p-2 grid overflow-hidden grid-cols-4 grid-rows-5 gap-2">
-                <div className="row-span-5 col-span-3">
-                    <h1 className="font-bold text-xl md:text-xl xl:text-4xl dark:text-white">{query?.name}</h1>
-                    <div className='mt-2 rounded-md'>
-                        <QueryHeatmap id={id as string} />
+            <div className='h-screen bg-white dark:bg-stone-900'>
+                <main className="p-2 grid overflow-hidden grid-cols-4 grid-rows-5 gap-2">
+                    <div className="row-span-5 col-span-3">
+                        <h1 className="font-bold text-xl md:text-xl xl:text-4xl dark:text-white">{query?.name}</h1>
+                        <div className='mt-2 rounded-md'>
+                            <QueryHeatmap id={id as string} />
+                        </div>
                     </div>
-                </div>
-                <div className="row-span-3 min-w-full min-h-full overflow-hidden">
-                    <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Quick View</h1>
-                    <div className='overflow-y-auto' style={{ height: '50vh' }}>
-                        {tweets && tweets.map((tweet, index) => {
-                            return (
-                                <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
-                                    <div className="m-2">
-                                        {tweet.media && tweet.media.length > 0 && tweet.media.map((media, index) => {
-                                            if (media.type === 'video') {
-                                                return (
-                                                    <video key={index} className="rounded-md" controls>
-                                                        <source src={media.url} type="video/mp4" />
-                                                    </video>
-                                                );
-                                            }
-                                            else if (media.type === 'photo') {
-                                                return (
-                                                    <img key={index} className="rounded m-2" src={media.url} alt="media" />
-                                                );
-                                            }
-                                        })}
+                    <div className="row-span-3 min-w-full min-h-full overflow-hidden">
+                        <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Quick View</h1>
+                        <div className='overflow-y-auto' style={{ height: '50vh' }}>
+                            {tweets && tweets.map((tweet, index) => {
+                                return (
+                                    <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
+                                        <div className="m-2">
+                                            {tweet.media && tweet.media.length > 0 && tweet.media.map((media, index) => {
+                                                if (media.type === 'video') {
+                                                    return (
+                                                        <video key={index} className="rounded-md" controls>
+                                                            <source src={media.url} type="video/mp4" />
+                                                        </video>
+                                                    );
+                                                }
+                                                else if (media.type === 'photo') {
+                                                    return (
+                                                        <img key={index} className="rounded m-2" src={media.url} alt="media" />
+                                                    );
+                                                }
+                                            })}
+                                        </div>
                                     </div>
-                                </div>
-                            );
-                        })}
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-                <div className="row-span-2 min-w-full min-h-full">
-                    <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Top 5 Tweets</h1>
-                    <div className='overflow-y-auto' style={{ height: '30vh' }}>
-                        {tweets && tweets.map((tweet, index) => {
-                            return (
-                                <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
-                                    <h5 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white break-words">Tweet: {tweet.id}</h5>
-                                    <h5 className="mb-2 text-l tracking-tight text-stone-900 dark:text-stone-200">{format(tweet.createdAt, 'yyyy/MM/dd')} - {tweet.relatabilityScore.toFixed(2)} score</h5>
-                                    <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Likes: </span>{tweet.likes}</p>
-                                    <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Matches: </span><span className='italic'>{tweet.keywordCount}</span> keywords matched</p>
-                                    <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Media: </span><span className='italic'>{tweet.media.length}</span> pieces of content</p>
-                                    <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Link: </span><span className='italic'><a target='_blank' href={`https://twitter.com/anyuser/status/${tweet.id}`} rel='noopener noreferrer' className='text-blue-400 hover:text-blue-300'>Twitter</a></span></p>
-                                </div>
-                            );
-                        })}
+                    <div className="row-span-2 min-w-full min-h-full">
+                        <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Top 5 Tweets</h1>
+                        <div className='overflow-y-auto' style={{ height: '30vh' }}>
+                            {tweets && tweets.map((tweet, index) => {
+                                return (
+                                    <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
+                                        <h5 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white break-words">Tweet: {tweet.id}</h5>
+                                        <h5 className="mb-2 text-l tracking-tight text-stone-900 dark:text-stone-200">{format(tweet.createdAt, 'yyyy/MM/dd')} - {tweet.relatabilityScore.toFixed(2)} score</h5>
+                                        <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Likes: </span>{tweet.likes}</p>
+                                        <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Matches: </span><span className='italic'>{tweet.keywordCount}</span> keywords matched</p>
+                                        <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Media: </span><span className='italic'>{tweet.media.length}</span> pieces of content</p>
+                                        <p className="font-normal text-stone-700 dark:text-stone-400"><span className='font-bold'>Link: </span><span className='italic'><a target='_blank' href={`https://twitter.com/anyuser/status/${tweet.id}`} rel='noopener noreferrer' className='text-blue-400 hover:text-blue-300'>Twitter</a></span></p>
+                                    </div>
+                                );
+                            })}
+                        </div>
                     </div>
-                </div>
-            </main>
-        </div>
+                </main>
+            </div>
+        </>
     );
 }
 
