@@ -18,12 +18,14 @@ const Map = dynamic(
     return import('../components/map')
   }, { ssr: false });
 
+// Login buttons that use Auth0
 function LoginButtons() {
   const { user, error, isLoading } = useUser();
 
   if (isLoading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
+  // If there is an active logged in user, show a logout button
   if (user) {
     return <>
       <Link href='/query/new' passHref>
@@ -33,6 +35,7 @@ function LoginButtons() {
     </>
   }
 
+  // Otherwise, show a login button
   return (
     <>
       <a href="/api/auth/login" className="w-full px-3 py-2 my-2 text-center rounded-md border-2 border-stone-700 bg-stone-600 hover:bg-stone-500 dark:border-stone-400 dark:bg-stone-300 dark:hover:bg-stone-200 shadow-sm text-sm leading-5 font-semibold text-stone-100 dark:text-stone-900">Login</a>
@@ -41,6 +44,7 @@ function LoginButtons() {
   );
 }
 
+// Delete button that uses Auth0
 function DeleteQueryButton({ callback }: { callback: () => void }) {
   const { user, error, isLoading } = useUser();
 
@@ -60,6 +64,7 @@ function DeleteQueryButton({ callback }: { callback: () => void }) {
   return <></>;
 }
 
+// Edit button that uses Auth0
 function EditQueryButton({ callback, link }: { callback: () => void, link: string }) {
   const { user, error, isLoading } = useUser();
 
@@ -83,8 +88,16 @@ function EditQueryButton({ callback, link }: { callback: () => void, link: strin
 
 const Dashboard: NextPage = () => {
 
+  // State for the query list
   let [queries, setQueries] = useState<IQuery[] | undefined>(undefined);
+
+  /* 
+    * State for the tweet list and is updated when the page is loaded
+    * This is a list of tweets that are currently being displayed
+  */
   let [tweets, setTweets] = useState<ITweet[] | undefined>(undefined);
+
+
   let [modalQuery, setModalQuery] = useState<IQuery | undefined>(undefined);
   let [open, setOpen] = useState(false);
 
@@ -92,9 +105,16 @@ const Dashboard: NextPage = () => {
   const cancelButtonRef = useRef(null);
 
   useEffect(() => {
+    // Get the list of queries from the server
     axios(`${process.env.NEXT_PUBLIC_API_URL}/queries/active/list`).then(res => {
+
+      // If the response is successful, set the queries
       if (res.data.status === 200) {
+
+        // Create an empty list of queries
         let queriesList: IQuery[] = [];
+
+        // Loop through the queries and add them to the list
         for (let query of res.data['queries']) {
           queriesList.push({
             id: query['_id'],
@@ -107,16 +127,27 @@ const Dashboard: NextPage = () => {
             maxTweets: query['maxTweets']
           });
         }
+
+        // Set the queries to the list that was temporarily created
         setQueries(queriesList);
       }
+
+      // If the response is not successful, display no queries to the user
       else setQueries(undefined);
     }).catch(err => {
       console.log(err);
     });
 
+    // Get the list of tweets from the server
     axios(`${process.env.NEXT_PUBLIC_API_URL}/queries/active/list/tweets?limit=5`).then(res => {
+
+      // If the response is successful, set the tweets
       if (res.data.status === 200) {
+
+        // Create an empty list of tweets
         let tweetsList: ITweet[] = [];
+
+        // Loop through the tweets and add them to the list
         for (let query of res.data['tweets']) {
           tweetsList.push({
             id: query['id'],
@@ -133,14 +164,24 @@ const Dashboard: NextPage = () => {
             relatabilityScore: query['rs']
           });
         }
+
+        // Set the tweets to the list that was temporarily created
         setTweets(tweetsList);
       }
+
+      // If the response is not successful, display no tweets to the user
       else setTweets(undefined);
     }).catch(err => {
       console.log(err);
     });
-  }, [refreshKey]);
+  }, [refreshKey]); // Use the refresh key to force the page to reload
 
+  /*
+    * This is the JSX that will be rendered to the page
+    * The modal is a custom dialog (will use the modal terminology) that is used to display the query information
+    * Everything that is wrapped in the Transition.Root component is animated and is shown or hidden depending on the state of the open variable, this is used for the modal
+    * The code after the Transition.Root component is the actual content that is displayed
+  */
   return (
     <>
       <Transition.Root show={open} as={Fragment}>
@@ -202,6 +243,7 @@ const Dashboard: NextPage = () => {
                     Cancel
                   </button>
                   <EditQueryButton link={`/query/edit/${modalQuery?.id}`} callback={() => {
+                    // Close the modal
                     setOpen(false);
                   }} />
                   <Link href={`/query/${modalQuery?.id}`} passHref>
@@ -216,11 +258,16 @@ const Dashboard: NextPage = () => {
                     </button>
                   </Link>
                   <DeleteQueryButton callback={
+                    // Close the modal and delete the query
                     () => {
                       setOpen(false);
                       axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/${modalQuery?.id}/remove`, {}).then(res => {
+
+                        // If the response is successful, reload the page
                         if (res.data['status'] === 200) {
                           console.log('Query removed');
+
+                          // Update the refresh key to force the page to reload so that the query is removed from the local client list
                           setRefreshKey((prev) => prev + 1);
                         }
                       }).catch(err => {
@@ -252,6 +299,7 @@ const Dashboard: NextPage = () => {
             <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Active Queries</h1>
             <div className='overflow-y-auto' style={{ height: '30vh' }}>
               {queries && queries.map((query, index) => {
+                // This code will create a new query card for each query and add it to the page
                 return (
                   <button key={index} onClick={() => {
                     setModalQuery(query);
@@ -271,6 +319,7 @@ const Dashboard: NextPage = () => {
             <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Top 5 Tweets</h1>
             <div className='overflow-y-auto' style={{ height: '30vh' }}>
               {tweets && tweets.map((tweet, index) => {
+                // This code will create a new tweet card for each tweet and add it to the page
                 return (
                   <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
                     <h5 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white break-words">Tweet: {tweet.id}</h5>
