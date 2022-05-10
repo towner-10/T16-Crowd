@@ -11,6 +11,9 @@ interface ITweetPoint {
 	id: string;
 }
 
+/**
+ * Style for the heatmap layer
+ */
 const heatmapLayerStyle: HeatmapLayer = {
 	id: 'heatmap-heat',
 	type: 'heatmap',
@@ -40,6 +43,9 @@ const heatmapLayerStyle: HeatmapLayer = {
 	}
 };
 
+/**
+ * Style for the circle layer that shows up after zooming in the map
+ */
 const pointLayerStyle: CircleLayer = {
 	id: 'tweet-point',
 	type: 'circle',
@@ -89,6 +95,9 @@ const pointLayerStyle: CircleLayer = {
 	}
 };
 
+/**
+ * Component for the map that is displayed in the Query page.
+ */
 export class QueryMap extends Component<{ location: any, style: any, onMove: (loc: any) => void }> {
 	
 	constructor(props: any) {
@@ -125,11 +134,19 @@ export class QueryMap extends Component<{ location: any, style: any, onMove: (lo
 	}
 }
 
+/**
+ * Component to display an active query on the map just by using its ID.
+ * @param props Properties for the component
+ * @param props.id The id of the query
+ * @returns The component
+ */
 export function QueryHeatmap(props: { id: string}) {
 
+	// The state for the popup and the heatmap layer
 	const [popupInfo, setPopupInfo] = useState<ITweetPoint | undefined>(undefined);
 	const [geojson, setGeoJson] = useState(null);
 
+	// Fetch the geojson data for the query on page load
 	useEffect(() => {
 		axios(`${process.env.NEXT_PUBLIC_API_URL}/query/${props.id}/geojson`).then(res => {
 			if (res.data.status === 200) {
@@ -141,6 +158,7 @@ export function QueryHeatmap(props: { id: string}) {
 		});
 	}, [props.id]);
 
+	// Memorize the geojson in the state
 	const data = useMemo(() => {
 		return geojson;
 	}, [geojson]);
@@ -157,9 +175,12 @@ export function QueryHeatmap(props: { id: string}) {
 			style={{ width: '100%', height: '90vh' }}
 			mapStyle="mapbox://styles/mapbox/dark-v10"
 			onClick={(event) => {
+				// Find the tweet that was clicked and check if it is a point
 				const { features } = event;
 				if (features !== undefined && features.length > 0) {
 					if (features[0].geometry.type === 'Point' && features[0].properties !== null) {
+						
+						// If it is a point, set the popup info
 						const tweet: ITweetPoint = {
 							longitude: features[0].geometry.coordinates[0],
 							latitude: features[0].geometry.coordinates[1],
@@ -194,11 +215,18 @@ export function QueryHeatmap(props: { id: string}) {
 	);
 }
 
-function DashboardMap() {
+/**
+ * The default map that is displayed on the dashboard. This will display all active queries and their tweets.
+ * Another function is available to display a specific query. This is due to the technical limitations of the MapBox API for styling maps.
+ * @returns The component
+ */
+export default function DashboardMap() {
 
+	// The state for the popup and the heatmap layer
 	const [popupInfo, setPopupInfo] = useState<ITweetPoint | undefined>(undefined);
 	const [geojson, setGeoJson] = useState(null);
 
+	// Fetch the geojson data for the query on page load
 	useEffect(() => {
 		axios(`${process.env.NEXT_PUBLIC_API_URL}/queries/active/list/geojson`).then(res => {
 			if (res.data.status === 200) {
@@ -210,6 +238,7 @@ function DashboardMap() {
 		});
 	}, []);
 
+	// Memorize the geojson in the state
 	const data = useMemo(() => {
 		return geojson;
 	}, [geojson]);
@@ -226,9 +255,12 @@ function DashboardMap() {
 			style={{ width: '100%', height: '90vh' }}
 			mapStyle="mapbox://styles/mapbox/dark-v10"
 			onClick={(event) => {
+				// Find the tweet that was clicked and check if it is a point
 				const { features } = event;
 				if (features !== undefined && features.length > 0) {
 					if (features[0].geometry.type === 'Point' && features[0].properties !== null) {
+						
+						// If it is a point, set the popup info
 						const tweet: ITweetPoint = {
 							longitude: features[0].geometry.coordinates[0],
 							latitude: features[0].geometry.coordinates[1],
@@ -262,5 +294,3 @@ function DashboardMap() {
 		</Map>
 	);
 }
-
-export default DashboardMap;

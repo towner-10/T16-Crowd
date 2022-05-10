@@ -1,22 +1,44 @@
 import { Component } from "react";
 
+/**
+ * Component for inputting tags/keywords.
+ * @param tags The tags to display
+ * @param setTags The callback to set the tags
+ */
 export default class TagInput extends Component<{ tags: string[], setTags: (tags: string[]) => void }> {
+
+    /**
+     * Add tag to the list.
+     * @param event A keyup event that was triggered and has a reference to the input
+     */
     addTag(event: any) {
         if (event.target.value !== '') {
+            // Prevent default behavior (i.e. submitting the form)
             event.preventDefault();
 
+            // Add tag to the list
             const newTags = [...this.props.tags];
             newTags.push(event.target.value);
             this.props.setTags(newTags);
             
+            // Clear input
             event.target.value = '';
         }
     }
 
+    /**
+     * Remove tag from the list.
+     * @param index The index of the tag to remove
+     */
     removeTag(index: number) {
+        // Remove tag from the list (alternate method to editing the array directly than using addTag)
         this.props.setTags([...this.props.tags.filter((tag, i) => i !== index)]);
     }
 
+    /**
+     * Render the component.
+     * @returns The component
+     */
     render() {
         return (
             <div className="m-2 flex flex-wrap py-2 border rounded bg-white">
