@@ -12,6 +12,7 @@ const EditQuery: NextPage = () => {
     const router = useRouter();
     const { id } = router.query;
 
+    // States for the query settings along with the default values
     let [query, setQuery] = useState<IQuery | undefined>(undefined);
     let [name, setName] = useState('');
     let [radius, setRadius] = useState(50);
@@ -25,6 +26,7 @@ const EditQuery: NextPage = () => {
 		latitude: 43.651,
 	});
 
+    // Map component
     const map = <QueryMap 
         location={location}
         onMove={(loc) => {
@@ -33,6 +35,7 @@ const EditQuery: NextPage = () => {
         }} style={{ width: '100%', height: '90vh' }}
     />;
 
+    // Keyword input field
     const keywordInput = <TagInput 
         tags={keywords}
         setTags={(tags) => {
@@ -42,6 +45,7 @@ const EditQuery: NextPage = () => {
 
     useEffect(() => {
         axios(`${process.env.NEXT_PUBLIC_API_URL}/query/${id}`).then(res => {
+            // If the query exists, set the query state
 			if (res.data.status === 200) {
                 setQuery({
                     id: res.data.query['_id'],
@@ -75,12 +79,16 @@ const EditQuery: NextPage = () => {
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
+        // Regex to encode brackets for the API
         const keywordsString = keywords.map((keyword, index) => {
             return encodeURIComponent(keyword.replace(/[\(\)']+/g,''));
         }).toString();
 
+        // Log the keywords to the console for debugging
+        // TODO: Remove this
         console.log(keywordsString);
 
+        // If the query exists, update it
         axios.post(`${process.env.NEXT_PUBLIC_API_URL}/query/${id}/update?name=${encodeURIComponent(name)}&loc=${location.latitude},${location.longitude},${radius}km&start=${startDate}&end=${endDate}&freq=${frequency}&max=${maxTweets}&keywords=${keywordsString}`).then(res => {
             if (res.data.status === 200) {
                 router.push('/query/[id]', `/query/${id}`);

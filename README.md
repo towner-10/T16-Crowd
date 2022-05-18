@@ -1,5 +1,12 @@
 # T16 Crowd Frontend
 
+![The dashboard in light-mode](/images/feature-image.png "Dashboard")
+
+## Description
+
+Front-end user interface for the NTP Twitter Scrapper I created for the ES1050 term project. This design won the client and judge award.
+The standout feature of this project is the user interface that can be accessed anywhere along with the map design.
+
 ## Roadmap
 
 - [x] Add `README.md`

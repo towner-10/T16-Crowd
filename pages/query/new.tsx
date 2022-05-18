@@ -9,6 +9,7 @@ import { useRouter } from 'next/router';
 
 const NewQuery: NextPage = () => {
 
+    // States for the query settings along with the default values
     let [name, setName] = useState('');
     let [radius, setRadius] = useState(50);
     let [startDate, setStartDate] = useState(format(Date.now(), 'yyyy-MM-dd'));
@@ -30,6 +31,7 @@ const NewQuery: NextPage = () => {
 		latitude: 43.651,
 	});
 
+    // Map component
     const map = <QueryMap 
         location={location}
         onMove={(loc) => {
@@ -37,6 +39,7 @@ const NewQuery: NextPage = () => {
         }} style={{ width: '100%', height: '90vh' }}
     />;
 
+    // Ability to change page
     const router = useRouter();
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {

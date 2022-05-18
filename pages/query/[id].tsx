@@ -9,14 +9,20 @@ import { QueryHeatmap } from '../../components/map'
 import { ITweet } from '../../types/tweet'
 
 const Query: NextPage = () => {
+
+    // Get the query id from the url
     const router = useRouter();
     const { id } = router.query;
 
+    // State for the tweets and the query
     let [tweets, setTweets] = useState<ITweet[] | undefined>(undefined);
     let [query, setQuery] = useState<IQuery | undefined>(undefined);
 
     useEffect(() => {
+        // Get the query
         axios(`${process.env.NEXT_PUBLIC_API_URL}/query/${id}`).then(res => {
+
+            // Set the query on success
             if (res.data.status === 200) {
                 setQuery({
                     id: res.data.query['_id'],
@@ -34,7 +40,11 @@ const Query: NextPage = () => {
             console.log(err);
             setQuery(undefined);
         });
+
+        // Get the tweets
         axios(`${process.env.NEXT_PUBLIC_API_URL}/query/${id}/tweets?limit=5`).then(res => {
+
+            // Set the tweets on success
             if (res.data.status === 200) {
                 let tweetsList: ITweet[] = [];
                 for (let query of res.data['tweets']) {
@@ -59,7 +69,7 @@ const Query: NextPage = () => {
         }).catch(err => {
             console.log(err);
         });
-    }, [id]);
+    }, [id]); // Only run when the id changes
 
     return (
         <>
@@ -80,6 +90,8 @@ const Query: NextPage = () => {
                         <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Quick View</h1>
                         <div className='overflow-y-auto' style={{ height: '50vh' }}>
                             {tweets && tweets.map((tweet, index) => {
+
+                                // Check each piece of media on the tweet and display it whether it's a photo or a video
                                 return (
                                     <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
                                         <div className="m-2">
@@ -92,6 +104,7 @@ const Query: NextPage = () => {
                                                     );
                                                 }
                                                 else if (media.type === 'photo') {
+                                                    // Does not use the <Image> component because the image is loaded asynchronously
                                                     return (
                                                         <img key={index} className="rounded m-2" src={media.url} alt="media" />
                                                     );
@@ -107,6 +120,7 @@ const Query: NextPage = () => {
                         <h1 className="m-2 font-bold text-xl md:text-xl xl:text-4xl dark:text-white">Top 5 Tweets</h1>
                         <div className='overflow-y-auto' style={{ height: '30vh' }}>
                             {tweets && tweets.map((tweet, index) => {
+                                // Display the top 5 tweets
                                 return (
                                     <div key={index} className="block m-3 p-6 bg-white rounded-lg border border-stone-200 shadow-md dark:bg-stone-800 dark:border-stone-700">
                                         <h5 className="text-2xl font-bold tracking-tight text-stone-900 dark:text-white break-words">Tweet: {tweet.id}</h5>
